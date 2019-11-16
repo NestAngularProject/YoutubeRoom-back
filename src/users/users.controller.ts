@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { User } from './interfaces/user.interface';
 import { Observable, of } from 'rxjs';
 import { USERS } from '../data/users';
@@ -54,5 +54,17 @@ export class UsersController {
   @Put(':username')
   update(@Body() updateUserDto: UpdateUserDto, @Param('username') username: string): Observable<User> {
     return this._usersService.update(updateUserDto, username);
+  }
+
+  /**
+   * Handler to answer to /users/username route
+   *
+   * @param {string} username of the user to delete
+   *
+   * @returns {Observable<void>}
+   */
+  @Delete(':username')
+  delete(@Param('username') username: string): Observable<void>{
+    return this._usersService.delete(username);
   }
 }

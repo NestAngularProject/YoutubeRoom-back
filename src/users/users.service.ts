@@ -123,4 +123,12 @@ export class UsersService {
         ),
       );
   }
+
+  delete(username: string): Observable<void> {
+    return this._findUserIndexOfList(username)
+      .pipe(
+        tap(_ => this._users.splice(_, 1)),
+        map(() => undefined),
+      );
+  }
 }
