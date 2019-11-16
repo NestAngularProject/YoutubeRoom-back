@@ -1,10 +1,12 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { User } from './interfaces/user.interface';
 import { USERS } from '../data/users';
 import { from, Observable, of, throwError } from 'rxjs';
-import { find, findIndex, flatMap, map, tap } from 'rxjs/operators';
+import { filter, find, findIndex, flatMap, map, tap } from 'rxjs/operators';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { equal } from 'assert';
+import { WrongPasswordException } from './exceptions/wrong-password.exception';
 
 @Injectable()
 export class UsersService {
@@ -41,6 +43,18 @@ export class UsersService {
     return from(this._users)
       .pipe(
         find(_ => _.username === username),
+        flatMap(_ =>
+          !!_ ?
+            of(_) :
+            throwError(new NotFoundException(`User with username '${username}' not found`)),
+        ),
+      );
+  }
+
+  findConnection(username: string, password: string): Observable<User> {
+    return from(this._users)
+      .pipe(
+        find(_ => _.username === username && _.password === password),
         flatMap(_ =>
           !!_ ?
             of(_) :

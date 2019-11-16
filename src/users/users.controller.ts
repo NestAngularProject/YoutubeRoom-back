@@ -35,8 +35,15 @@ export class UsersController {
     return this._usersService.findOne(username);
   }
 
+  @Get(':username/:password')
+  findConnection(@Param('username') username: string, @Param('password') password: string): Observable<User> {
+    return this._usersService.findConnection(username, password);
+  }
+
   /**
+   * Handler to answer to /users route
    *
+   * @returns Observable<User>
    */
   @Post()
   create(@Body() createUserDto: CreateUserDto): Observable<User> {
