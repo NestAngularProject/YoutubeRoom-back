@@ -51,6 +51,14 @@ export class UsersService {
       );
   }
 
+  /**
+   * Check if the user's username and password are valid
+   *
+   * @param {string} username of the user
+   * @param {string} password of the user
+   *
+   * @returns {Observable<User>}
+   */
   findConnection(username: string, password: string): Observable<User> {
     return from(this._users)
       .pipe(
@@ -76,7 +84,7 @@ export class UsersService {
         find(_ => _.username === user.username || _.mail === user.mail),
         flatMap(_ =>
           !!_ ?
-            throwError(new ConflictException(`User with username '${user.username} or mail '${user.mail} already exists`),
+            throwError(new ConflictException(`User with username '${user.username}' or mail '${user.mail}' already exists`),
             ) :
             this._addUser(user),
         ),
@@ -133,7 +141,7 @@ export class UsersService {
         findIndex(_ => _.username === username),
         flatMap(_ => _ > -1 ?
         of(_) :
-        throwError(new NotFoundException(`User with username '${username} not found`)),
+        throwError(new NotFoundException(`User with username '${username}' not found`)),
         ),
       );
   }

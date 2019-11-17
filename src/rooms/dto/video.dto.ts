@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class CreateVideoDto {
+export class VideoDto {
   @IsString()
   @IsNotEmpty()
   readonly link: string;
