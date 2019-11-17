@@ -7,6 +7,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { equal } from 'assert';
 import { WrongPasswordException } from './exceptions/wrong-password.exception';
+import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -23,12 +24,12 @@ export class UsersService {
   /**
    * Returns the list of users
    *
-   * @returns {Observable<User[] | void>}
+   * @returns {Observable<UserEntity[] | void>}
    */
-  findAll(): Observable<User[] | void> {
+  findAll(): Observable<UserEntity[] | void> {
     return of(this._users)
       .pipe(
-        map(_ => (!!_ && !!_.length) ? _ : undefined),
+        map(_ => (!!_ && !!_.length) ? _.map(__ => new UserEntity(__)) : undefined),
       );
   }
 
@@ -37,15 +38,15 @@ export class UsersService {
    *
    * @param {string} username of the user
    *
-   * @returns {Observable<User>}
+   * @returns {Observable<UserEntity>}
    */
-  findOne(username: string): Observable<User> {
+  findOne(username: string): Observable<UserEntity> {
     return from(this._users)
       .pipe(
         find(_ => _.username === username),
         flatMap(_ =>
           !!_ ?
-            of(_) :
+            of(new UserEntity(_)) :
             throwError(new NotFoundException(`User with username '${username}' not found`)),
         ),
       );
@@ -57,15 +58,15 @@ export class UsersService {
    * @param {string} username of the user
    * @param {string} password of the user
    *
-   * @returns {Observable<User>}
+   * @returns {Observable<UserEntity>}
    */
-  findConnection(username: string, password: string): Observable<User> {
+  findConnection(username: string, password: string): Observable<UserEntity> {
     return from(this._users)
       .pipe(
         find(_ => _.username === username && _.password === password),
         flatMap(_ =>
           !!_ ?
-            of(_) :
+            of(new UserEntity(_)) :
             throwError(new NotFoundException(`User with username '${username}' not found`)),
         ),
       );
@@ -76,7 +77,7 @@ export class UsersService {
    *
    * @param {CreateUserDto} user to create
    *
-   * @returns {Observable<User>}
+   * @returns {Observable<UserEntity>}
    */
   create(user: CreateUserDto) {
     return from(this._users)
@@ -96,17 +97,18 @@ export class UsersService {
    *
    * @param {CreateUserDto} user to add
    *
-   * @returns {Observable<User>}
+   * @returns {Observable<UserEntity>}
    *
    * @private
    */
-  private _addUser(user: CreateUserDto): Observable<User> {
+  private _addUser(user: CreateUserDto): Observable<UserEntity> {
     return of(user)
       .pipe(
         map(_ =>
           Object.assign(_) as User,
         ),
         tap(_ => this._users = this._users.concat(_)),
+        map(_ => new UserEntity(_)),
       );
   }
 
@@ -118,11 +120,11 @@ export class UsersService {
    *
    * @returns {Observable<User>}
    */
-  update(user: UpdateUserDto, username: string): Observable<User> {
+  update(user: UpdateUserDto, username: string): Observable<UserEntity> {
     return this._findUserIndexOfList(username)
       .pipe(
         tap(_ => Object.assign(this._users[_], user)),
-        map(_ => this._users[_]),
+        map(_ => new UserEntity(this._users[_])),
       );
   }
 

@@ -8,6 +8,8 @@ import { UpdateVideoDto } from '../videos/dto/update-video.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { User } from '../users/interfaces/user.interface';
 import { WrongPasswordException } from '../users/exceptions/wrong-password.exception';
+import { RoomEntity } from './entities/room.entity';
+import { RoomsModule } from './rooms.module';
 
 @Injectable()
 export class RoomsService {
@@ -24,12 +26,12 @@ export class RoomsService {
   /**
    * Returns the list of rooms
    *
-   * @returns {Observable<Room[] | void>}
+   * @returns {Observable<RoomEntity[] | void>}
    */
-  findAll(): Observable<Room[] | void> {
+  findAll(): Observable<RoomEntity[] | void> {
     return of(this._rooms)
       .pipe(
-        map(_ => (!!_ && !!_.length) ? _ : undefined),
+        map(_ => (!!_ && !!_.length) ? _.map(__ => new RoomEntity(__)) : undefined),
       );
   }
 
@@ -38,15 +40,15 @@ export class RoomsService {
    *
    * @param {string}
    *
-   * @returns {Observable<Room>}
+   * @returns {Observable<RoomEntity>}
    */
-  findOne(name: string): Observable<Room> {
+  findOne(name: string): Observable<RoomEntity> {
     return from(this._rooms)
       .pipe(
         find(_ => _.name === name),
         flatMap(_ =>
           !!_ ?
-            of(_) :
+            of(new RoomEntity(_)) :
             throwError(new NotFoundException(`Room with name '${name}' not found `)),
         ),
       );
@@ -55,18 +57,18 @@ export class RoomsService {
   /**
    * Check if the password of the room is valid
    *
-   * @param {string} username of the user
-   * @param {string} password of the user
+   * @param {string} name of the room
+   * @param {string} password of the room
    *
-   * @returns {Observable<User>}
+   * @returns {Observable<RoomEntity>}
    */
-  findConnection(name: string, password: string): Observable<Room> {
+  findConnection(name: string, password: string): Observable<RoomEntity> {
     return from(this._rooms)
       .pipe(
         find(_ => _.name === name && _.password === password),
         flatMap(_ =>
           !!_ ?
-            of(_) :
+            of(new RoomEntity(_)) :
             throwError(new WrongPasswordException()),
         ),
       );
@@ -77,9 +79,9 @@ export class RoomsService {
    *
    * @param {CreateRoomDto} data to create the room
    *
-   * @returns {Observable<Room>}
+   * @returns {Observable<RoomEntity>}
    */
-  create(room: CreateRoomDto): Observable<Room> {
+  create(room: CreateRoomDto): Observable<RoomEntity> {
     return from(this._rooms)
       .pipe(
         find(_ => _.name === room.name),
@@ -98,13 +100,13 @@ export class RoomsService {
    * @param {UpdateRoomDto} data of the room to update
    * @param {string} name of the room to update
    *
-   * @returns {Observable<Room>}
+   * @returns {Observable<RoomEntity>}
    */
   update(room: UpdateRoomDto, name: string) {
       return this._findRoomIndexOfList(name)
         .pipe(
           tap(_ => Object.assign(this._rooms[_], room)),
-          map(_ => this._rooms[_]),
+          map(_ => new RoomEntity(this._rooms[_])),
         );
   }
 
@@ -152,13 +154,14 @@ export class RoomsService {
    *
    * @private
    */
-  private _addRoom(room: CreateRoomDto): Observable<Room> {
+  private _addRoom(room: CreateRoomDto): Observable<RoomEntity> {
     return of(room)
       .pipe(
         map(_ =>
           Object.assign(_) as Room,
         ),
         tap(_ => this._rooms = this._rooms.concat(_)),
+        map(_ => new RoomEntity(_)),
       );
   }
 }

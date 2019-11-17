@@ -5,6 +5,7 @@ import { from, Observable, of, throwError } from 'rxjs';
 import { find, findIndex, flatMap, map, tap } from 'rxjs/operators';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
+import { VideoEntity } from './entities/video.entity';
 
 @Injectable()
 export class VideosService {
@@ -21,12 +22,12 @@ export class VideosService {
   /**
    * Returns the list of videos
    *
-   * @returns {Observable<Video[] | void>}
+   * @returns {Observable<VideoEntity[] | void>}
    */
-  findAll(): Observable<Video[] | void> {
+  findAll(): Observable<VideoEntity[] | void> {
     return of(this._videos)
       .pipe(
-        map(_ => (!!_ && !!_.length) ? _ : undefined),
+        map(_ => (!!_ && !!_.length) ? _.map(__ => new VideoEntity(__)) : undefined),
       );
   }
 
@@ -35,15 +36,15 @@ export class VideosService {
    *
    * @param {string} id of the video
    *
-   * @returns {Observable<Video>}
+   * @returns {Observable<VideoEntity>}
    */
-  findOne(id: string): Observable<Video> {
+  findOne(id: string): Observable<VideoEntity> {
     return from(this._videos)
       .pipe(
         find(_ => _.id === id),
         flatMap(_ =>
           !!_ ?
-            of(_) :
+            of(new VideoEntity(_)) :
             throwError(new NotFoundException(`Video with id '${id}' not found`)),
         ),
       );
@@ -54,9 +55,9 @@ export class VideosService {
    *
    * @param {CreateVideoDto} data of the video to create
    *
-   * @returns {Observable<Video>}
+   * @returns {Observable<VideoEntity>}
    */
-  create(video: CreateVideoDto): Observable<Video> {
+  create(video: CreateVideoDto): Observable<VideoEntity> {
     return of(video)
       .pipe(
         map(_ =>
@@ -65,6 +66,7 @@ export class VideosService {
           }) as Video,
         ),
         tap(_ => this._videos = this._videos.concat(_)),
+        map(_ => new VideoEntity(_)),
       );
   }
 
@@ -74,13 +76,13 @@ export class VideosService {
    * @param {UpdateVideoDto}
    * @param {string}
    *
-   * @returns {Observable<Video>}
+   * @returns {Observable<VideoEntity>}
    */
-  update(video: UpdateVideoDto, id: string): Observable<Video> {
+  update(video: UpdateVideoDto, id: string): Observable<VideoEntity> {
     return this._findVideosIndexOfList(id)
       .pipe(
         tap(_ => Object.assign(this._videos[_], video)),
-        map(_ => this._videos[_]),
+        map(_ => new VideoEntity(this._videos[_])),
       );
   }
 

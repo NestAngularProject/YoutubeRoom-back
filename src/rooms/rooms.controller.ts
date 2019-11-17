@@ -1,14 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, ClassSerializerInterceptor, Controller, Delete, Get, Param, Post, Put, UseInterceptors } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { Observable } from 'rxjs';
 import { Room } from './interfaces/room.interface';
 import { CreateRoomDto } from './dto/create-room.dto';
-import { RoomsModule } from './rooms.module';
-import { UpdateVideoDto } from '../videos/dto/update-video.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
-import { User } from '../users/interfaces/user.interface';
+import { RoomEntity } from './entities/room.entity';
 
 @Controller('rooms')
+@UseInterceptors(ClassSerializerInterceptor)
 export class RoomsController {
   /**
    * Class controller
@@ -20,7 +19,7 @@ export class RoomsController {
    * Handler to answer /rooms route
    */
   @Get()
-  findAll(): Observable<Room[] | void> {
+  findAll(): Observable<RoomEntity[] | void> {
     return this._roomsService.findAll();
   }
 
@@ -29,10 +28,10 @@ export class RoomsController {
    *
    * @param {string}
    *
-   * @returns {Observable<Room>}
+   * @returns {Observable<RoomEntity>}
    */
   @Get(':name')
-  findOne(@Param('name') name: string): Observable<Room> {
+  findOne(@Param('name') name: string): Observable<RoomEntity> {
     return this._roomsService.findOne(name);
   }
 
@@ -42,10 +41,10 @@ export class RoomsController {
    * @param {string}
    * @param {string}
    *
-   * @returns {Observable<Room>}
+   * @returns {Observable<RoomEntity>}
    */
   @Get(':name/:password')
-  findConnection(@Param('name') name: string, @Param('password') password: string): Observable<Room> {
+  findConnection(@Param('name') name: string, @Param('password') password: string): Observable<RoomEntity> {
     return this._roomsService.findConnection(name, password);
   }
 
@@ -54,10 +53,10 @@ export class RoomsController {
    *
    * @param {CreateRoomDto}
    *
-   * @returns {Observable<Room>}
+   * @returns {Observable<RoomEntity>}
    */
   @Post()
-  create(@Body() createRoomDto: CreateRoomDto): Observable<Room> {
+  create(@Body() createRoomDto: CreateRoomDto): Observable<RoomEntity> {
     return this._roomsService.create(createRoomDto);
   }
 
@@ -67,10 +66,10 @@ export class RoomsController {
    * @param {UpdateRoomDto}
    * @param {string}
    *
-   * @returns {Observable<Room>}
+   * @returns {Observable<RoomEntity>}
    */
   @Put(':name')
-  update(@Body() updateRoomDto: UpdateRoomDto, @Param('name') name: string): Observable<Room> {
+  update(@Body() updateRoomDto: UpdateRoomDto, @Param('name') name: string): Observable<RoomEntity> {
     return this._roomsService.update(updateRoomDto, name);
   }
 
