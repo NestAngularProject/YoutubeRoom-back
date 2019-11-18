@@ -4,12 +4,9 @@ import { ROOMS } from '../data/rooms';
 import { from, Observable, of, throwError } from 'rxjs';
 import { find, findIndex, flatMap, map, tap } from 'rxjs/operators';
 import { CreateRoomDto } from './dto/create-room.dto';
-import { UpdateVideoDto } from '../videos/dto/update-video.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
-import { User } from '../users/interfaces/user.interface';
 import { WrongPasswordException } from '../users/exceptions/wrong-password.exception';
 import { RoomEntity } from './entities/room.entity';
-import { RoomsModule } from './rooms.module';
 
 @Injectable()
 export class RoomsService {

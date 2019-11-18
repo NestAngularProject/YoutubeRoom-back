@@ -1,12 +1,10 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from './interfaces/user.interface';
 import { USERS } from '../data/users';
 import { from, Observable, of, throwError } from 'rxjs';
-import { filter, find, findIndex, flatMap, map, tap } from 'rxjs/operators';
+import { find, findIndex, flatMap, map, tap } from 'rxjs/operators';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { equal } from 'assert';
-import { WrongPasswordException } from './exceptions/wrong-password.exception';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
