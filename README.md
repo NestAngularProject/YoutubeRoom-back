@@ -31,33 +31,53 @@
 ## Installation
 
 ```bash
-$ npm install
+$ yarn install
 ```
+##Database
 
+```bash
+Run a mongoDB database with docker
+docker run -d -p 27017-27019:27017-27019 --name mongodb mongo:latest
+
+Create a database "youtubeRoom" in mongoDB with a mongo-shell or robo3T
+
+Create 3 collections in the database :
+    "users"
+    "videos"
+    "rooms"
+
+Run the scripts that are inside the scripts folder to intialize the database and indexes
+```
 ## Running the app
 
 ```bash
 # development
-$ npm run start
+$ yarn run start
 
 # watch mode
-$ npm run start:dev
+$ yarn run start:dev
 
 # production mode
-$ npm run start:prod
+$ yarn run start:prod
+```
+
+## Documentation
+
+```bash
+Swagger documentation available at localhost:3000/documentation
 ```
 
 ## Test
 
 ```bash
 # unit tests
-$ npm run test
+$ yarn run test
 
 # e2e tests
-$ npm run test:e2e
+$ yarn run test:e2e
 
 # test coverage
-$ npm run test:cov
+$ yarn run test:cov
 ```
 
 ## Support
