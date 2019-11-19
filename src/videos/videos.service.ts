@@ -27,6 +27,26 @@ export class VideosService {
   }
 
   /**
+   * Returns the list of videos inside the room in parameter
+   *
+   * @param {string} name of the room
+   *
+   * @returns {Observable<VideoEntity[] | void>}
+   */
+  findMany(room: string): Observable<VideoEntity[] | void> {
+    return this._videosDao.findMany(room)
+      .pipe(
+        catchError(e => throwError(new UnprocessableEntityException(e.message))),
+        flatMap(_ =>
+          !!_ ?
+            of(_) :
+            throwError(new NotFoundException(`Room with name '${room}' not found`)),
+        ),
+        map(_ => (!!_ && !!_.length) ? _.map(__ => new VideoEntity(__)) : undefined),
+      );
+  }
+
+  /**
    * Returns the video of the list matching the id
    *
    * @param {string} id of the video

@@ -37,6 +37,22 @@ export class VideosController {
   }
 
   /**
+   * Handler to answer to GET /videos/room route
+   *
+   * @returns Observable<User[] | void>
+   */
+  @ApiOkResponse({description: 'Returns an array of video', type: VideoEntity, isArray: true})
+  @ApiNotFoundResponse({description: 'Room with the given name doesn\'t exist in the database'})
+  @ApiNoContentResponse({description: 'No video exists in room'})
+  @ApiBadRequestResponse({description: 'Parameter provided is not good'})
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
+  @ApiImplicitParam({name: 'room', description: 'Name of the room', type: String})
+  @Get('room/:room')
+  findMany(@Param('room') room: string): Observable<VideoEntity[] | void> {
+    return this._videosService.findMany(room);
+  }
+
+  /**
    * Handler to answer to GET /videos/id route
    *
    * @param {string} id of the video
@@ -46,7 +62,6 @@ export class VideosController {
   @ApiOkResponse({description: 'Returns one video for the given id', type: VideoEntity})
   @ApiNotFoundResponse({description: 'Video with the given id doesn\'t exist in the database'})
   @ApiBadRequestResponse({description: 'Parameter provided is not good'})
-  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({name: 'id', description: 'Unique identifier of the video in the database', type: String})
   @Get(':id')

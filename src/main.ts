@@ -40,6 +40,7 @@ async function bootstrap(config: AppConfig, swaggerConfig: SwaggerConfig) {
 
   // launch server
   await app.listen(3000);
+  app.enableCors();
   Logger.log(' Application served at http://${config.host}:${config.port}', 'bootstrap');
 }
 bootstrap(Config.get<AppConfig>('server'), Config.get<SwaggerConfig>('swagger'));

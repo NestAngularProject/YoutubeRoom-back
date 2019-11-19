@@ -29,13 +29,29 @@ export class UsersController {
   /**
    * Handler to answer to GET /users route
    *
-   * @returns Observable<User[]>
+   * @returns Observable<User[] | void>
    */
   @ApiOkResponse({description: 'Returns an array of user', type: UserEntity, isArray: true})
   @ApiNoContentResponse({description: 'No user exists in database'})
   @Get()
   findAll(): Observable<UserEntity[] | void> {
     return this._usersService.findAll();
+  }
+
+  /**
+   * Handler to answer to GET /users/room route
+   *
+   * @returns Observable<User[] | void>
+   */
+  @ApiOkResponse({description: 'Returns an array of user', type: UserEntity, isArray: true})
+  @ApiNotFoundResponse({description: 'Room with the given name doesn\'t exist in the database'})
+  @ApiNoContentResponse({description: 'No user exists in room'})
+  @ApiBadRequestResponse({description: 'Parameter provided is not good'})
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
+  @ApiImplicitParam({name: 'room', description: 'Name of the room', type: String})
+  @Get('room/:room')
+  findMany(@Param('room') room: string): Observable<UserEntity[] | void> {
+    return this._usersService.findMany(room);
   }
 
   /**

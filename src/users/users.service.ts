@@ -28,6 +28,26 @@ export class UsersService {
   }
 
   /**
+   * Returns the list of users inside the room in parameter
+   *
+   * @param {string} name of the room
+   *
+   * @returns {Observable<UserEntity[] | void>}
+   */
+  findMany(room: string): Observable<UserEntity[] | void> {
+    return this._usersDao.findMany(room)
+      .pipe(
+        catchError(e => throwError(new UnprocessableEntityException(e.message))),
+        flatMap(_ =>
+          !!_ ?
+            of(_) :
+            throwError(new NotFoundException(`Room with name '${room}' not found`)),
+        ),
+        map(_ => (!!_ && !!_.length) ? _.map(__ => new UserEntity(__)) : undefined),
+      );
+  }
+
+  /**
    * Returns the user from users matching the username
    *
    * @param {string} username of the user

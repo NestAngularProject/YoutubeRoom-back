@@ -30,6 +30,20 @@ export class VideosDao {
   }
 
   /**
+   * Returns all videos from the room in parameter
+   *
+   * @param {string} name of the room in the database
+   *
+   * @return {Observable<Video[] | void>}
+   */
+  findMany(roomName: string): Observable<Video[] | void> {
+    return from(this._videoModel.find({room: roomName}))
+      .pipe(
+        map((docs: MongooseDocument[]) => (!!docs && docs.length > 0) ? docs.map(_ => _.toJSON()) : undefined),
+      );
+  }
+
+  /**
    * Returns one video of the list matching the id in parameter
    *
    * @param {string} id of the video in the databse

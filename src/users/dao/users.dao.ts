@@ -30,9 +30,23 @@ export class UsersDao {
   }
 
   /**
+   * Returns all user from the room in parameter
+   *
+   * @param {string} name of the room in the database
+   *
+   * @return {Observable<User[] | void>}
+   */
+  findMany(roomName: string): Observable<User[] | void> {
+    return from(this._userModel.find({room: roomName}))
+      .pipe(
+        map((docs: MongooseDocument[]) => (!!docs && docs.length > 0) ? docs.map(_ => _.toJSON()) : undefined),
+      );
+  }
+
+  /**
    * Returns one user of the list matching the username in parameter
    *
-   * @param {string} username of the user in the databse
+   * @param {string} username of the user in the database
    *
    * @return {Observable<User | void>}
    */
