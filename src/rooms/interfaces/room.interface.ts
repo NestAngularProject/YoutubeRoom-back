@@ -1,7 +1,7 @@
-import { Video } from '../../videos/interfaces/video.interface';
+import {Document} from 'mongoose';
 
-export interface Room {
+export interface Room extends Document {
   name: string;
   password: string;
-  videos: Video[];
+  currentVideoID: string;
 }

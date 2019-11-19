@@ -3,7 +3,7 @@ import { ApiModelProperty, ApiModelPropertyOptional } from '@nestjs/swagger';
 
 export class CreateVideoDto {
   @ApiModelProperty({description: 'Youtube link of the video',
-    example: 'https://youtu.be/hTWKbfoikeg',
+    example: 'https://www.youtube.com/watch?v=hTWKbfoikeg',
     pattern: 'http(?:s?):\\/\\/(?:www\\.)?youtu(?:be\\.com\\/watch\\?v=|\\.be\\/)([\\w\\-\\_]*)(&(amp;)?‌​[\\w\\?‌​=]*)?'
   })
   @IsString()
@@ -20,4 +20,9 @@ export class CreateVideoDto {
   @IsBoolean()
   @IsNotEmpty()
   seen: boolean;
+
+  @ApiModelProperty({description: 'Name of the room where the video has been created', example: 'Chill'})
+  @IsString()
+  @IsNotEmpty()
+  room: string;
 }

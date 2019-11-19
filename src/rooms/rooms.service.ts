@@ -1,23 +1,18 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Room } from './interfaces/room.interface';
-import { ROOMS } from '../data/rooms';
-import { from, Observable, of, throwError } from 'rxjs';
-import { find, findIndex, flatMap, map, tap } from 'rxjs/operators';
+import { ConflictException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, flatMap, map} from 'rxjs/operators';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
-import { WrongPasswordException } from '../users/exceptions/wrong-password.exception';
+import { WrongPasswordException } from './exceptions/wrong-password.exception';
 import { RoomEntity } from './entities/room.entity';
+import { RoomsDao } from './dao/rooms.dao';
 
 @Injectable()
 export class RoomsService {
-  // private property to store the rooms
-  private _rooms: Room[];
-
   /**
    * Class constructor
    */
-  constructor() {
-    this._rooms = ROOMS;
+  constructor(private readonly _roomsDao: RoomsDao) {
   }
 
   /**
@@ -26,7 +21,7 @@ export class RoomsService {
    * @returns {Observable<RoomEntity[] | void>}
    */
   findAll(): Observable<RoomEntity[] | void> {
-    return of(this._rooms)
+    return this._roomsDao.find()
       .pipe(
         map(_ => (!!_ && !!_.length) ? _.map(__ => new RoomEntity(__)) : undefined),
       );
@@ -35,14 +30,14 @@ export class RoomsService {
   /**
    * Return the room with name from rooms list
    *
-   * @param {string}
+   * @param {string} name of the room
    *
    * @returns {Observable<RoomEntity>}
    */
   findOne(name: string): Observable<RoomEntity> {
-    return from(this._rooms)
+    return this._roomsDao.findOne(name)
       .pipe(
-        find(_ => _.name === name),
+        catchError(e => throwError(new UnprocessableEntityException(e.message))),
         flatMap(_ =>
           !!_ ?
             of(new RoomEntity(_)) :
@@ -59,10 +54,10 @@ export class RoomsService {
    *
    * @returns {Observable<RoomEntity>}
    */
-  findConnection(name: string, password: string): Observable<RoomEntity> {
-    return from(this._rooms)
+  findConnexion(name: string, password: string): Observable<RoomEntity> {
+    return this._roomsDao.findConnexion(name, password)
       .pipe(
-        find(_ => _.name === name && _.password === password),
+        catchError(e => throwError(new UnprocessableEntityException(e.message))),
         flatMap(_ =>
           !!_ ?
             of(new RoomEntity(_)) :
@@ -79,32 +74,38 @@ export class RoomsService {
    * @returns {Observable<RoomEntity>}
    */
   create(room: CreateRoomDto): Observable<RoomEntity> {
-    return from(this._rooms)
+    return this._addRoom(room)
       .pipe(
-        find(_ => _.name === room.name),
-        flatMap(_ =>
-          !!_ ?
-            throwError(new ConflictException(`Room with name '${room.name}' already exists`),
+        flatMap(_ => this._roomsDao.create(_)),
+        catchError(e =>
+          e.code = 11000 ?
+            throwError(
+              new ConflictException(`Room with name '${room.name}' already exists`),
             ) :
-            this._addRoom(room),
+            throwError(new UnprocessableEntityException(e.message)),
         ),
+        map(_ => new RoomEntity(_)),
       );
   }
 
   /**
    * Update the room in rooms list
    *
-   * @param {UpdateRoomDto} data of the room to update
    * @param {string} name of the room to update
+   * @param {UpdateRoomDto} data of the room to update
    *
    * @returns {Observable<RoomEntity>}
    */
-  update(room: UpdateRoomDto, name: string) {
-      return this._findRoomIndexOfList(name)
-        .pipe(
-          tap(_ => Object.assign(this._rooms[_], room)),
-          map(_ => new RoomEntity(this._rooms[_])),
-        );
+  update(name: string, room: UpdateRoomDto): Observable<RoomEntity> {
+    return this._roomsDao.findOneAndUpdate(name, room)
+      .pipe(
+        catchError(e => throwError(new NotFoundException(e.message))),
+        flatMap(_ =>
+          !!_ ?
+            of(new RoomEntity((_))) :
+            throwError(new NotFoundException(`Room with name '${name}' not found`)),
+        ),
+      );
   }
 
   /**
@@ -115,29 +116,13 @@ export class RoomsService {
    * @returns {Observable<void>}
    */
   delete(name: string): Observable<void> {
-    return this._findRoomIndexOfList(name)
+    return this._roomsDao.findOneAndDelete(name)
       .pipe(
-        tap(_ => this._rooms.splice(_, 1)),
-        map(() => undefined),
-      );
-  }
-
-  /**
-   * Finds index of array for the room
-   *
-   * @param {string} name of the room
-   *
-   * @returns {Observable<number>}
-   *
-   * @private
-   */
-  private _findRoomIndexOfList(name: string): Observable<number> {
-    return from(this._rooms)
-      .pipe(
-        findIndex(_ => _.name === name),
-        flatMap(_ => _ > -1 ?
-          of(_) :
-          throwError(new NotFoundException(`Room with name '${name}' not found`)),
+        catchError(e => throwError(new NotFoundException(e.message))),
+        flatMap(_ =>
+          !!_ ?
+            of(undefined) :
+            throwError(new NotFoundException(`Room with name '${name}' not found`)),
         ),
       );
   }
@@ -147,18 +132,16 @@ export class RoomsService {
    *
    * @param {CreateRoomDto}
    *
-   * @returns {Observable<Room>}
+   * @returns {Observable<CreateRoomDto>}
    *
    * @private
    */
-  private _addRoom(room: CreateRoomDto): Observable<RoomEntity> {
+  private _addRoom(room: CreateRoomDto): Observable<CreateRoomDto> {
     return of(room)
       .pipe(
         map(_ =>
-          Object.assign(_) as Room,
+          Object.assign(_),
         ),
-        tap(_ => this._rooms = this._rooms.concat(_)),
-        map(_ => new RoomEntity(_)),
       );
   }
 }

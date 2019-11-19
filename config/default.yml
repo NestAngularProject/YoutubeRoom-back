@@ -9,3 +9,10 @@ swagger:
   tag2: videos
   tag3: rooms
   path: documentation
+mongodb:
+  uri: mongodb://0.0.0.0:27017/youtubeRoom
+  options:
+    useNewUrlParser: true
+    useUnifiedTopology: true
+    useFindAndModify: true
+

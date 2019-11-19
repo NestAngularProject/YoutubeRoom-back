@@ -1,13 +1,10 @@
-import { Video } from '../../videos/interfaces/video.interface';
-import { IsInstance, IsOptional } from 'class-validator';
-import { Type } from 'class-transformer';
-import { RoomVideoDto } from './room-video.dto';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiModelPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateRoomDto {
-  @ApiModelPropertyOptional({description: `Room's list of videos`})
+  @ApiModelPropertyOptional({description: `Unique identifier of the video`, example: 'strcngsml8lqm1z'})
   @IsOptional()
-  @IsInstance(RoomVideoDto)
-  @Type(() => RoomVideoDto)
-  videos?: RoomVideoDto[];
+  @IsString()
+  @IsNotEmpty()
+  currentVideoID?: string;
 }

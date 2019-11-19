@@ -8,7 +8,7 @@ export class VideoEntity {
   @Type(() => String)
   id: string;
 
-  @ApiModelProperty({description: 'Youtube link of the video', example: 'https://youtu.be/hTWKbfoikeg'})
+  @ApiModelProperty({description: 'Youtube link of the video', example: 'https://www.youtube.com/watch?v=hTWKbfoikeg'})
   @Expose()
   @Type(() => String)
   link: string;
@@ -22,6 +22,11 @@ export class VideoEntity {
   @Expose()
   @Type(() => Boolean)
   seen: boolean
+
+  @ApiModelProperty({description: 'Name of the room where the video has been created', example: 'Chill'})
+  @Expose()
+  @Type(() => String)
+  room: string;
 
   /**
    * Class constructor

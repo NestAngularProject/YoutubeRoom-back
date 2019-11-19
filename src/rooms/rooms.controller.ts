@@ -10,7 +10,7 @@ import {
   ApiImplicitParam,
   ApiNoContentResponse,
   ApiNotFoundResponse,
-  ApiOkResponse,
+  ApiOkResponse, ApiUnprocessableEntityResponse,
   ApiUseTags,
 } from '@nestjs/swagger';
 
@@ -47,6 +47,7 @@ export class RoomsController {
   @ApiOkResponse({ description: 'Returns the room for the given name', type: RoomEntity })
   @ApiNotFoundResponse({ description: 'Room with the given name doesn\'t exist in the database' })
   @ApiBadRequestResponse({ description: 'Parameter provided is not good' })
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({ name: 'name', description: 'Name of the room in the database', type: String })
   @Get(':name')
   findOne(@Param('name') name: string): Observable<RoomEntity> {
@@ -64,11 +65,12 @@ export class RoomsController {
   @ApiOkResponse({description: 'Returns one room for the given name and password', type: RoomEntity})
   @ApiForbiddenResponse({description: 'The password given is wrong'})
   @ApiBadRequestResponse({description: 'Parameters provided are not good'})
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({name: 'name', description: 'Name of the room in the database', type: String})
   @ApiImplicitParam({name: 'password', description: 'Password of the room in the database', type: String})
   @Get(':name/:password')
-  findConnection(@Param('name') name: string, @Param('password') password: string): Observable<RoomEntity> {
-    return this._roomsService.findConnection(name, password);
+  findConnexion(@Param('name') name: string, @Param('password') password: string): Observable<RoomEntity> {
+    return this._roomsService.findConnexion(name, password);
   }
 
   /**
@@ -81,7 +83,8 @@ export class RoomsController {
   @ApiCreatedResponse({ description: 'The room has been successfully created', type: RoomEntity })
   @ApiConflictResponse({ description: 'The room already exists in the database' })
   @ApiBadRequestResponse({ description: 'Payload provided is not good' })
-  @ApiImplicitBody({ name: 'RoomCreateDto', description: 'Payload to create a new room', type: CreateRoomDto })
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
+  @ApiImplicitBody({ name: 'CreateRoomDto', description: 'Payload to create a new room', type: CreateRoomDto })
   @Post()
   create(@Body() createRoomDto: CreateRoomDto): Observable<RoomEntity> {
     return this._roomsService.create(createRoomDto);
@@ -90,19 +93,20 @@ export class RoomsController {
   /**
    * Handler to answer to PUT /rooms/name route
    *
-   * @param {UpdateRoomDto} data of the room to update
    * @param {string} name of the room to update
+   * @param {UpdateRoomDto} data of the room to update
    *
    * @returns {Observable<RoomEntity>}
    */
   @ApiOkResponse({ description: 'The room has been successfully updated', type: RoomEntity })
   @ApiNotFoundResponse({ description: 'Room with the given name doesn\'t exist in the database' })
   @ApiBadRequestResponse({ description: 'Parameter and/or payload provided are not good' })
-  @ApiImplicitBody({ name: 'UpdateRoomDto', description: 'Payload to update a room', type: UpdateRoomDto })
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({ name: 'name', description: 'Name of the room in the database', type: String })
+  @ApiImplicitBody({ name: 'UpdateRoomDto', description: 'Payload to update a room', type: UpdateRoomDto })
   @Put(':name')
-  update(@Body() updateRoomDto: UpdateRoomDto, @Param('name') name: string): Observable<RoomEntity> {
-    return this._roomsService.update(updateRoomDto, name);
+  update(@Param('name') name: string, @Body() updateRoomDto: UpdateRoomDto): Observable<RoomEntity> {
+    return this._roomsService.update(name, updateRoomDto);
   }
 
   /**
@@ -115,6 +119,7 @@ export class RoomsController {
   @ApiNoContentResponse({ description: 'The room has been successfully deleted' })
   @ApiNotFoundResponse({ description: 'Room with the given name doesn\'t exist in the database' })
   @ApiBadRequestResponse({ description: 'Parameter provided is not good' })
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({ name: 'name', description: 'Name of the room in the database', type: String })
   @Delete(':name')
   delete(@Param('name') name: string): Observable<void> {

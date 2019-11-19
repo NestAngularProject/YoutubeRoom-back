@@ -1,22 +1,18 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { User } from './interfaces/user.interface';
-import { USERS } from '../data/users';
-import { from, Observable, of, throwError } from 'rxjs';
-import { find, findIndex, flatMap, map, tap } from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, flatMap, map} from 'rxjs/operators';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
+import { UsersDao } from './dao/users.dao';
 
 @Injectable()
 export class UsersService {
-  // private property to store users
-  private _users: User[];
-
   /**
    * Class constructor
    */
-  constructor() {
-    this._users = USERS;
+  constructor(private readonly _usersDao: UsersDao) {
   }
 
   /**
@@ -25,7 +21,7 @@ export class UsersService {
    * @returns {Observable<UserEntity[] | void>}
    */
   findAll(): Observable<UserEntity[] | void> {
-    return of(this._users)
+    return this._usersDao.find()
       .pipe(
         map(_ => (!!_ && !!_.length) ? _.map(__ => new UserEntity(__)) : undefined),
       );
@@ -39,9 +35,9 @@ export class UsersService {
    * @returns {Observable<UserEntity>}
    */
   findOne(username: string): Observable<UserEntity> {
-    return from(this._users)
+    return this._usersDao.findOne(username)
       .pipe(
-        find(_ => _.username === username),
+        catchError(e => throwError(new UnprocessableEntityException(e.message))),
         flatMap(_ =>
           !!_ ?
             of(new UserEntity(_)) :
@@ -58,10 +54,10 @@ export class UsersService {
    *
    * @returns {Observable<UserEntity>}
    */
-  findConnection(username: string, password: string): Observable<UserEntity> {
-    return from(this._users)
+  findConnexion(username: string, password: string): Observable<UserEntity> {
+    return this._usersDao.findConnexion(username, password)
       .pipe(
-        find(_ => _.username === username && _.password === password),
+        catchError(e => throwError(new UnprocessableEntityException(e.message))),
         flatMap(_ =>
           !!_ ?
             of(new UserEntity(_)) :
@@ -77,15 +73,62 @@ export class UsersService {
    *
    * @returns {Observable<UserEntity>}
    */
-  create(user: CreateUserDto) {
-    return from(this._users)
+  create(user: CreateUserDto): Observable<UserEntity> {
+    return this._addUser(user)
       .pipe(
-        find(_ => _.username === user.username || _.mail === user.mail),
+        flatMap(_ => this._usersDao.create(_)),
+        catchError(e =>
+          e.code = 11000 ?
+            throwError(
+              new ConflictException(`User with username '${user.username}' or email '${user.mail}' already exists`),
+            ) :
+            throwError(new UnprocessableEntityException(e.message)),
+        ),
+        map(_ => new UserEntity(_)),
+      );
+  }
+
+  /**
+   * Update a user in the users list
+   *
+   * @param {string} username of the user to update
+   * @param {UpdateUserDto} user data to update
+   *
+   * @returns {Observable<User>}
+   */
+  update(username: string, user: UpdateUserDto): Observable<UserEntity> {
+    return this._usersDao.findOneAndUpdate(username, user)
+      .pipe(
+        catchError(e =>
+          e.code = 11000 ?
+            throwError(
+              new ConflictException(`User with username '${user.username}' or email '${user.mail}' already exists`),
+            ) :
+            throwError(new UnprocessableEntityException(e.message)),
+        ),
         flatMap(_ =>
           !!_ ?
-            throwError(new ConflictException(`User with username '${user.username}' or mail '${user.mail}' already exists`),
-            ) :
-            this._addUser(user),
+            of(new UserEntity((_))) :
+            throwError(new NotFoundException(`User with username '${username}' not found`)),
+        ),
+      );
+  }
+
+  /**
+   * Delete a user from the users list
+   *
+   * @param {string} username of the user
+   *
+   * @returns {Observable<void>}
+   */
+  delete(username: string): Observable<void> {
+    return this._usersDao.findOneAndDelete(username)
+      .pipe(
+        catchError(e => throwError(new NotFoundException(e.message))),
+        flatMap(_ =>
+          !!_ ?
+            of(undefined) :
+            throwError(new NotFoundException(`User with username '${username}' not found`)),
         ),
       );
   }
@@ -95,62 +138,17 @@ export class UsersService {
    *
    * @param {CreateUserDto} user to add
    *
-   * @returns {Observable<UserEntity>}
+   * @returns {Observable<CreateUserDto>}
    *
    * @private
    */
-  private _addUser(user: CreateUserDto): Observable<UserEntity> {
+  private _addUser(user: CreateUserDto): Observable<CreateUserDto> {
     return of(user)
       .pipe(
         map(_ =>
-          Object.assign(_) as User,
-        ),
-        tap(_ => this._users = this._users.concat(_)),
-        map(_ => new UserEntity(_)),
-      );
-  }
-
-  /**
-   * Update a user in the users list
-   *
-   * @param {UpdateUserDto} user data to update
-   * @param {string} username of the user to update
-   *
-   * @returns {Observable<User>}
-   */
-  update(user: UpdateUserDto, username: string): Observable<UserEntity> {
-    return this._findUserIndexOfList(username)
-      .pipe(
-        tap(_ => Object.assign(this._users[_], user)),
-        map(_ => new UserEntity(this._users[_])),
-      );
-  }
-
-  /**
-   * Finds index of array for the user
-   *
-   * @param {string} username of the user to find
-   *
-   * @returns {Observable<number>}
-   *
-   * @private
-   */
-  private _findUserIndexOfList(username: string): Observable<number> {
-    return from(this._users)
-      .pipe(
-        findIndex(_ => _.username === username),
-        flatMap(_ => _ > -1 ?
-        of(_) :
-        throwError(new NotFoundException(`User with username '${username}' not found`)),
+          Object.assign(_),
         ),
       );
   }
 
-  delete(username: string): Observable<void> {
-    return this._findUserIndexOfList(username)
-      .pipe(
-        tap(_ => this._users.splice(_, 1)),
-        map(() => undefined),
-      );
-  }
 }

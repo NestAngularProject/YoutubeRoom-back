@@ -9,8 +9,9 @@ import {
   ApiImplicitParam,
   ApiNoContentResponse,
   ApiNotFoundResponse,
-  ApiOkResponse, ApiUseTags,
+  ApiOkResponse, ApiUnprocessableEntityResponse, ApiUseTags,
 } from '@nestjs/swagger';
+import { HandlerParams } from './validators/handler-params';
 
 @ApiUseTags('videos')
 @Controller('videos')
@@ -45,10 +46,12 @@ export class VideosController {
   @ApiOkResponse({description: 'Returns one video for the given id', type: VideoEntity})
   @ApiNotFoundResponse({description: 'Video with the given id doesn\'t exist in the database'})
   @ApiBadRequestResponse({description: 'Parameter provided is not good'})
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({name: 'id', description: 'Unique identifier of the video in the database', type: String})
   @Get(':id')
-  findOne(@Param('id') id: string): Observable<VideoEntity> {
-    return this._videosService.findOne(id);
+  findOne(@Param() params: HandlerParams): Observable<VideoEntity> {
+    return this._videosService.findOne(params.id);
   }
 
   /**
@@ -60,6 +63,7 @@ export class VideosController {
    */
   @ApiCreatedResponse({ description: 'The video has been successfully created', type: VideoEntity })
   @ApiBadRequestResponse({ description: 'Payload provided is not good' })
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitBody({ name: 'CreateVideoDto', description: 'Payload to create a new video', type: CreateVideoDto })
   @Post()
   create(@Body() createVideoDto: CreateVideoDto): Observable<VideoEntity> {
@@ -69,19 +73,20 @@ export class VideosController {
   /**
    * Handler to answer to PUT /videos/id route
    *
-   * @param {UpdateVideoDto} data of the video to update
    * @param {string} id of the video to update
+   * @param {UpdateVideoDto} data of the video to update
    *
    * @returns {Observable<VideoEntity>}
    */
   @ApiOkResponse({ description: 'The video has been successfully updated', type: VideoEntity })
   @ApiNotFoundResponse({ description: 'Video with the given id doesn\'t exist in the database' })
   @ApiBadRequestResponse({ description: 'Parameter and/or payload provided are not good' })
-  @ApiImplicitBody({ name: 'UpdateVideoDto', description: 'Payload to update a video', type: UpdateVideoDto })
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({ name: 'id', description: 'Unique identifier of the video in the database', type: String })
+  @ApiImplicitBody({ name: 'UpdateVideoDto', description: 'Payload to update a video', type: UpdateVideoDto })
   @Put(':id')
-  update(@Body() updateVideoDto: UpdateVideoDto, @Param('id') id: string): Observable<VideoEntity> {
-    return this._videosService.update(updateVideoDto, id);
+  update(@Param() params: HandlerParams, @Body() updateVideoDto: UpdateVideoDto): Observable<VideoEntity> {
+    return this._videosService.update(params.id, updateVideoDto);
   }
 
   /**
@@ -94,9 +99,10 @@ export class VideosController {
   @ApiNoContentResponse({ description: 'The video has been successfully deleted' })
   @ApiNotFoundResponse({ description: 'Video with the given id doesn\'t exist in the database' })
   @ApiBadRequestResponse({ description: 'Parameter provided is not good' })
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({ name: 'id', description: 'Unique identifier of the video in the database', type: String })
   @Delete(':id')
-  delete(@Param('id') id: string): Observable<void> {
-    return this._videosService.delete(id);
+  delete(@Param() params: HandlerParams): Observable<void> {
+    return this._videosService.delete(params.id);
   }
 }

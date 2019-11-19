@@ -11,7 +11,7 @@ import {
   ApiImplicitParam,
   ApiNoContentResponse,
   ApiNotFoundResponse,
-  ApiOkResponse,
+  ApiOkResponse, ApiUnprocessableEntityResponse,
   ApiUseTags,
 } from '@nestjs/swagger';
 
@@ -48,6 +48,7 @@ export class UsersController {
   @ApiOkResponse({description: 'Returns one user for the given username', type: UserEntity})
   @ApiNotFoundResponse({description: 'User with the given username doesn\'t exist in the database'})
   @ApiBadRequestResponse({description: 'Parameter provided is not good'})
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({name: 'username', description: 'Username of the user in the database', type: String})
   @Get(':username')
   findOne(@Param('username') username: string): Observable<UserEntity> {
@@ -65,11 +66,12 @@ export class UsersController {
   @ApiOkResponse({description: 'Returns one user for the given username and password', type: UserEntity})
   @ApiNotFoundResponse({description: 'User with the given username doesn\'t exist in the database'})
   @ApiBadRequestResponse({description: 'Parameters provided are not good'})
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({name: 'username', description: 'Username of the user in the database', type: String})
   @ApiImplicitParam({name: 'password', description: 'Password of the user in the database', type: String})
   @Get(':username/:password')
   findConnection(@Param('username') username: string, @Param('password') password: string): Observable<UserEntity> {
-    return this._usersService.findConnection(username, password);
+    return this._usersService.findConnexion(username, password);
   }
 
   /**
@@ -80,6 +82,7 @@ export class UsersController {
   @ApiCreatedResponse({ description: 'The user has been successfully created', type: UserEntity })
   @ApiConflictResponse({ description: 'The user already exists in the database' })
   @ApiBadRequestResponse({ description: 'Payload provided is not good' })
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitBody({ name: 'CreateUserDto', description: 'Payload to create a new user', type: CreateUserDto })
   @Post()
   create(@Body() createUserDto: CreateUserDto): Observable<UserEntity> {
@@ -89,19 +92,20 @@ export class UsersController {
   /**
    * Handler to answer to PUT /users/username route
    *
-   * @param {UpdateUserDto} data of the user to update
    * @param {string} username of the user to update
+   * @param {UpdateUserDto} data of the user to update
    *
    * @returns Observable<UserEntity>
    */
   @ApiOkResponse({ description: 'The user has been successfully updated', type: UserEntity })
   @ApiNotFoundResponse({ description: 'User with the given username doesn\'t exist in the database' })
   @ApiBadRequestResponse({ description: 'Parameter and/or payload provided are not good' })
-  @ApiImplicitBody({ name: 'UpdateUserDto', description: 'Payload to update a user', type: UpdateUserDto })
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({ name: 'username', description: 'Username of the user in the database', type: String })
+  @ApiImplicitBody({ name: 'UpdateUserDto', description: 'Payload to update a user', type: UpdateUserDto })
   @Put(':username')
-  update(@Body() updateUserDto: UpdateUserDto, @Param('username') username: string): Observable<UserEntity> {
-    return this._usersService.update(updateUserDto, username);
+  update(@Param('username') username: string, @Body() updateUserDto: UpdateUserDto): Observable<UserEntity> {
+    return this._usersService.update(username, updateUserDto);
   }
 
   /**
@@ -114,6 +118,7 @@ export class UsersController {
   @ApiNoContentResponse({ description: 'The user has been successfully deleted' })
   @ApiNotFoundResponse({ description: 'User with the given username doesn\'t exist in the database' })
   @ApiBadRequestResponse({ description: 'Parameter provided is not good' })
+  @ApiUnprocessableEntityResponse({description: `The request can't be performed in the database`})
   @ApiImplicitParam({ name: 'username', description: 'Username of the user in the database', type: String })
   @Delete(':username')
   delete(@Param('username') username: string): Observable<void> {

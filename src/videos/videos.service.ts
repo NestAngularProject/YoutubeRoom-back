@@ -1,22 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Video } from './interfaces/video.interface';
-import { VIDEOS } from '../data/videos';
-import { from, Observable, of, throwError } from 'rxjs';
-import { find, findIndex, flatMap, map, tap } from 'rxjs/operators';
+import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, flatMap, map} from 'rxjs/operators';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
 import { VideoEntity } from './entities/video.entity';
+import { VideosDao } from './dao/videos.dao';
 
 @Injectable()
 export class VideosService {
-  // private to stock a list of videos
-  private _videos: Video[];
-
   /**
    * Class constructor
    */
-  constructor() {
-    this._videos = VIDEOS;
+  constructor(private readonly _videosDao: VideosDao) {
   }
 
   /**
@@ -25,7 +20,7 @@ export class VideosService {
    * @returns {Observable<VideoEntity[] | void>}
    */
   findAll(): Observable<VideoEntity[] | void> {
-    return of(this._videos)
+    return this._videosDao.find()
       .pipe(
         map(_ => (!!_ && !!_.length) ? _.map(__ => new VideoEntity(__)) : undefined),
       );
@@ -39,9 +34,9 @@ export class VideosService {
    * @returns {Observable<VideoEntity>}
    */
   findOne(id: string): Observable<VideoEntity> {
-    return from(this._videos)
+    return this._videosDao.findById(id)
       .pipe(
-        find(_ => _.id === id),
+        catchError(e => throwError(new UnprocessableEntityException(e.message))),
         flatMap(_ =>
           !!_ ?
             of(new VideoEntity(_)) :
@@ -58,14 +53,10 @@ export class VideosService {
    * @returns {Observable<VideoEntity>}
    */
   create(video: CreateVideoDto): Observable<VideoEntity> {
-    return of(video)
+    return this._addVideo(video)
       .pipe(
-        map(_ =>
-          Object.assign(_,{
-            id: this._createId(),
-          }) as Video,
-        ),
-        tap(_ => this._videos = this._videos.concat(_)),
+        catchError(e => throwError(new UnprocessableEntityException(e.message))),
+        flatMap(_ => this._videosDao.create(_)),
         map(_ => new VideoEntity(_)),
       );
   }
@@ -73,63 +64,60 @@ export class VideosService {
   /**
    * Update a video in the videos list
    *
-   * @param {UpdateVideoDto}
-   * @param {string}
+   * @param {string} id of the video to update
+   * @param {UpdateVideoDto} data of the video to update
    *
    * @returns {Observable<VideoEntity>}
    */
-  update(video: UpdateVideoDto, id: string): Observable<VideoEntity> {
-    return this._findVideosIndexOfList(id)
+  update(id: string, video: UpdateVideoDto): Observable<VideoEntity> {
+    return this._videosDao.findByIdAndUpdate(id, video)
       .pipe(
-        tap(_ => Object.assign(this._videos[_], video)),
-        map(_ => new VideoEntity(this._videos[_])),
+        catchError(e => throwError(new UnprocessableEntityException(e.message))),
+        flatMap(_ =>
+          !!_ ?
+            of(new VideoEntity((_))) :
+            throwError(new NotFoundException(`Video with id '${id}' not found`)),
+        ),
       );
   }
 
   /**
    * Delete a video from the videos list
    *
-   * @param {string}
+   * @param {string} id of the video to delete
    *
    * @returns {Observable<void>}
    */
   delete(id: string): Observable<void> {
-    return this._findVideosIndexOfList(id)
+    return this._videosDao.findByIdAndDelete(id)
       .pipe(
-        tap(_ => this._videos.splice(_, 1)),
-        map(() => undefined),
-      );
-  }
-
-  /**
-   * Returns the index of the video in the videos list
-   *
-   * @param {string}
-   *
-   * @returns {Observable<Number>}
-   *
-   * @private
-   */
-  private _findVideosIndexOfList(id: string): Observable<number> {
-    return from(this._videos)
-      .pipe(
-        findIndex(_ => _.id === id),
-        flatMap(_ => _ > -1 ?
-          of(_) :
-          throwError(new NotFoundException(`Video with id '${id}' not found`)),
+        catchError(e => throwError(new NotFoundException(e.message))),
+        flatMap(_ =>
+          !!_ ?
+            of(undefined) :
+            throwError(new NotFoundException(`Video with id '${id}' not found`)),
         ),
       );
   }
 
   /**
-   * Creates a new id
+   * Add a valid video in videos list
    *
-   * @returns {string}
+   * @param {CreateVideoDto} video to add
+   *
+   * @returns {Observable<CreateVideoDto>}
    *
    * @private
    */
-  private _createId(): string {
-    const crypto = require('crypto');
-    return crypto.randomBytes(16).toString('hex');
+  private _addVideo(video: CreateVideoDto): Observable<CreateVideoDto> {
+    return of(video)
+      .pipe(
+        map(_ =>
+          Object.assign(_, {
+            timestamp: 0,
+            seen: false,
+          }),
+        ),
+      );
   }
 }

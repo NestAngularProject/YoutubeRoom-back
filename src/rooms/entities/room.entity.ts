@@ -1,6 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { RoomVideoEntity } from './room-video.entity';
-import { ApiModelProperty } from '@nestjs/swagger';
+import { ApiModelProperty, ApiModelPropertyOptional } from '@nestjs/swagger';
 
 @Exclude()
 export class RoomEntity {
@@ -12,11 +11,10 @@ export class RoomEntity {
   @ApiModelProperty({description: 'Password of the room', example: 'P455wOrD-75'})
   password: string;
 
-  @ApiModelProperty({description: `Room's list of videos`})
+  @ApiModelPropertyOptional({description: 'Unique identifier of the current video', example: 'strcngsml8lqm1z'})
   @Expose()
-  @Type(() => RoomVideoEntity)
-  videos: RoomVideoEntity[];
-
+  @Type(() => String)
+  currentVideoID: string;
   /**
    * Class constructor
    *
