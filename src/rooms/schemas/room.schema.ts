@@ -15,6 +15,10 @@ export const RoomSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  timestamp: {
+    type: Number,
+    trim: true,
+  },
 }, {
   toJSON: {virtuals: true},
   versionKey: false,

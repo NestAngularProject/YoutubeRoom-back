@@ -4,4 +4,5 @@ export interface Room extends Document {
   name: string;
   password: string;
   currentVideoID: string;
+  timestamp: number;
 }

@@ -11,10 +11,16 @@ export class RoomEntity {
   @ApiModelProperty({description: 'Password of the room', example: 'P455wOrD-75'})
   password: string;
 
-  @ApiModelPropertyOptional({description: 'Unique identifier of the current video', example: 'strcngsml8lqm1z'})
+  @ApiModelPropertyOptional({description: 'Unique identifier of the current video', example: '5dd49c0ed9fe78e237497df8'})
   @Expose()
   @Type(() => String)
   currentVideoID: string;
+
+  @ApiModelPropertyOptional({description: 'Timestamp of the current video', example: '20'})
+  @Expose()
+  @Type(() => Number)
+  timestamp: number;
+
   /**
    * Class constructor
    *
