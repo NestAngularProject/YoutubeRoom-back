@@ -22,7 +22,14 @@ db.getCollection('videos').insertMany([
     "timestamp": "40",
     "seen": "false",
     "room": "room3"
+  },
+  {
+    "link": "https://www.youtube.com/watch?v=gdSWaIvyQ3o",
+    "timestamp": "0",
+    "seen": "false",
+    "room": "room1"
   }
+
 ]);
 
 // display the final initial data

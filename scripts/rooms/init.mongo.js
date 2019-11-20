@@ -6,19 +6,19 @@
 // Insert rooms array
 db.getCollection('rooms').insertMany([
   {
-    "name": "Room1",
+    "name": "room1",
     "password": "password1",
-    "currentVideoID": "strcngsml8lqm1z",
+    "currentVideoID": "5dd49a3ed9fe78e237497dbb",
   },
   {
-    "name": "Room2",
+    "name": "room2",
     "password": "password2",
-    "currentVideoID": "g1kbmd999r2cjil",
+    "currentVideoID": "5dd49a3ed9fe78e237497dbc",
   },
   {
-    "name": "Room3",
+    "name": "room3",
     "password": "password3",
-    "currentVideoID": "2s6ic5zoge2bsye",
+    "currentVideoID": "5dd49a3ed9fe78e237497dbd",
   }
 ]);
 
