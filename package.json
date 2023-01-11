@@ -26,7 +26,7 @@
     "@nestjs/platform-fastify": "^6.9.0",
     "@nestjs/swagger": "^3.1.0",
     "class-transformer": "^0.2.3",
-    "class-validator": "^0.11.0",
+    "class-validator": "^0.14.0",
     "config": "^3.2.4",
     "fastify-swagger": "^2.4.0",
     "js-yaml": "^3.13.1",
